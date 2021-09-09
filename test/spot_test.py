@@ -23,6 +23,10 @@ def holidays(trade_date):
             lambda ns: [trade_date + timedelta(days=n) for n in ns])
 
 
+def spot_lags():
+    return st.integers(1, 3)
+
+
 def trade_dates():
     return st.dates(date(2000, 1, 1), date(2050, 12, 31))
 
@@ -73,6 +77,22 @@ def test_spot_never_falls_on_currency_holidays(pair, dates):
     all_holidays = set(holidays1) | set(holidays2)
 
     assert calculator.spot_for(ccy1, ccy2, trade_date) not in all_holidays
+
+
+@given(currency_pairs(), trade_dates(), spot_lags())
+def test_same_no_of_biz_days_for_given_spot_lag(pair, trade_date, spot_lag):
+    calc = s.ValueDateCalculator()
+    calc.set_spot_lag(pair, spot_lag)
+
+    shuffle(pair)
+    spot_date = calc.spot_for(*pair, trade_date)
+    total_days = (spot_date - trade_date).days
+    total_weekdays = sum(
+            [1 for n in range(total_days)
+                if (trade_date + timedelta(days=n+1)).isoweekday() < 6])
+
+    assert total_weekdays == spot_lag
+
 
 
 # -- example-based tests --

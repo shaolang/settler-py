@@ -5,15 +5,22 @@ from itertools import islice
 class ValueDateCalculator:
     __DEFAULT_WEEKENDS = [6, 7]
     __DEFAULT_HOLIDAYS = []
+    __DEFAULT_SPOT_LAG = 2
     __ONE_DAY = timedelta(days=1)
 
     def __init__(self):
         self.__weekends = {}
         self.__holidays = {}
+        self.__spot_lags = {}
 
 
     def set_holidays(self, ccy, holidays):
         self.__holidays[ccy] = holidays
+
+
+    def set_spot_lag(self, pair, spot_lag):
+        self.__spot_lags[tuple(pair)] = spot_lag
+        self.__spot_lags[tuple(pair[::-1])] = spot_lag
 
 
     def set_weekends(self, ccy1, weekends):
@@ -21,8 +28,9 @@ class ValueDateCalculator:
 
 
     def spot_for(self, ccy1, ccy2, trade_date):
-        ccy1_pred, ccy1_spot = self.__pred_and_candidate_spot(ccy1, trade_date)
-        ccy2_pred, ccy2_spot = self.__pred_and_candidate_spot(ccy2, trade_date)
+        spot_lag = self.__spot_lags.get((ccy1, ccy2), self.__DEFAULT_SPOT_LAG)
+        ccy1_pred, ccy1_spot = self.__pred_and_spot(ccy1, trade_date, spot_lag)
+        ccy2_pred, ccy2_spot = self.__pred_and_spot(ccy2, trade_date, spot_lag)
         candidate = ccy1_spot if ccy1_spot > ccy2_spot else ccy2_spot
         usd_pred = self.__biz_day_predicate('USD', True)
 
@@ -53,9 +61,9 @@ class ValueDateCalculator:
             result += self.__ONE_DAY
 
 
-    def __pred_and_candidate_spot(self, ccy, trade_date):
+    def __pred_and_spot(self, ccy, trade_date, spot_lag):
         include_holidays = ccy != 'USD'
-        is_biz_day = self.__biz_day_predicate(ccy, include_holidays)
+        pred = self.__biz_day_predicate(ccy, include_holidays)
 
-        return (is_biz_day,
-                list(islice(self.__biz_dates(trade_date, is_biz_day), 2))[-1])
+        return (pred,
+                list(islice(self.__biz_dates(trade_date, pred), spot_lag))[-1])
