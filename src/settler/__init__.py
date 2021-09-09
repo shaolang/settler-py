@@ -23,8 +23,8 @@ class ValueDateCalculator:
         self.__spot_lags[(ccy2, ccy1)] = spot_lag
 
 
-    def set_weekends(self, ccy1, weekends):
-        self.__weekends[ccy1] = weekends
+    def set_weekends(self, ccy, weekends):
+        self.__weekends[ccy] = weekends
 
 
     def spot_for(self, ccy1, ccy2, trade_date):
