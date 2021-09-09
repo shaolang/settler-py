@@ -1,5 +1,6 @@
 from datetime import date, timedelta
 from hypothesis import given
+from random import shuffle
 
 import hypothesis.strategies as st
 import settler as s
@@ -95,3 +96,14 @@ def test_usd_and_currency_holidays_where_usd_holiday_is_on_candidate_date():
     calc.set_holidays('USD', [date(2021, 11, 4)])    # Wed
 
     assert calc.spot_for('JPY', 'SGD', trade_date) == date(2021, 11, 5)
+
+
+def test_usd_on_t_plus_one_is_counted_as_good_date():
+    trade_date = date(2021, 11, 1)  # Mon
+    calc = s.ValueDateCalculator()
+
+    calc.set_holidays('USD', [date(2021, 11, 2)])   # Tue
+    pair = ['USD', 'SGD']
+    shuffle(pair)
+
+    assert calc.spot_for(*pair, trade_date) == date(2021, 11, 3)

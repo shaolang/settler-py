@@ -21,14 +21,10 @@ class ValueDateCalculator:
 
 
     def spot_for(self, ccy1, ccy2, trade_date):
-        ccy1_pred = self.__biz_day_predicate(ccy1)
-        ccy2_pred = self.__biz_day_predicate(ccy2)
-        ccy1_dates = self.__biz_dates(trade_date, ccy1_pred)
-        ccy2_dates = self.__biz_dates(trade_date, ccy2_pred)
-        ccy1_spot = list(islice(ccy1_dates, 2))[-1]
-        ccy2_spot = list(islice(ccy2_dates, 2))[-1]
+        ccy1_pred, ccy1_spot = self.__pred_and_candidate_spot(ccy1, trade_date)
+        ccy2_pred, ccy2_spot = self.__pred_and_candidate_spot(ccy2, trade_date)
         candidate = ccy1_spot if ccy1_spot > ccy2_spot else ccy2_spot
-        usd_pred = self.__biz_day_predicate('USD')
+        usd_pred = self.__biz_day_predicate('USD', True)
 
         candidate_pred = lambda d: ccy1_pred(d) and ccy2_pred(d) and usd_pred(d)
 
@@ -38,9 +34,12 @@ class ValueDateCalculator:
         return candidate
 
 
-    def __biz_day_predicate(self, ccy):
+    def __biz_day_predicate(self, ccy, include_holidays):
         weekends = self.__weekends.get(ccy, self.__DEFAULT_WEEKENDS)
-        holidays = self.__holidays.get(ccy, self.__DEFAULT_HOLIDAYS)
+        holidays = (
+                self.__holidays.get(ccy, self.__DEFAULT_HOLIDAYS)
+                if include_holidays
+                else [])
 
         return lambda d: d.isoweekday() not in weekends and d not in holidays
 
@@ -52,3 +51,11 @@ class ValueDateCalculator:
             if is_biz_day(result):
                 yield result
             result += self.__ONE_DAY
+
+
+    def __pred_and_candidate_spot(self, ccy, trade_date):
+        include_holidays = ccy != 'USD'
+        is_biz_day = self.__biz_day_predicate(ccy, include_holidays)
+
+        return (is_biz_day,
+                list(islice(self.__biz_dates(trade_date, is_biz_day), 2))[-1])
