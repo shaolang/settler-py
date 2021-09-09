@@ -28,18 +28,19 @@ class ValueDateCalculator:
         ccy1_spot = list(islice(ccy1_dates, 2))[-1]
         ccy2_spot = list(islice(ccy2_dates, 2))[-1]
         candidate = ccy1_spot if ccy1_spot > ccy2_spot else ccy2_spot
+        usd_pred = self.__biz_day_predicate('USD')
 
-        pair_pred = lambda d: ccy1_pred(d) and ccy2_pred(d)
+        candidate_pred = lambda d: ccy1_pred(d) and ccy2_pred(d) and usd_pred(d)
 
-        if not pair_pred(candidate):
-            candidate = next(self.__biz_dates(candidate, pair_pred))
+        if not candidate_pred(candidate):
+            candidate = next(self.__biz_dates(candidate, candidate_pred))
 
         return candidate
 
 
     def __biz_day_predicate(self, ccy):
-        weekends = self.__weekends.get(ccy,self. __DEFAULT_WEEKENDS)
-        holidays = self.__holidays.get(ccy,self. __DEFAULT_HOLIDAYS)
+        weekends = self.__weekends.get(ccy, self.__DEFAULT_WEEKENDS)
+        holidays = self.__holidays.get(ccy, self.__DEFAULT_HOLIDAYS)
 
         return lambda d: d.isoweekday() not in weekends and d not in holidays
 

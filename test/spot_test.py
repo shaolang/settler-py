@@ -29,7 +29,7 @@ def trade_dates():
 def weekend_lists():
     return st.lists(st.integers(1, 7), max_size=3, unique=True)
 
-# -- properties --
+# -- property-based tests --
 
 @given(trade_dates(), currency_pairs())
 def test_spot_date_never_falls_on_weekend(trade_date, pair):
@@ -72,3 +72,26 @@ def test_spot_never_falls_on_currency_holidays(pair, dates):
     all_holidays = set(holidays1) | set(holidays2)
 
     assert calculator.spot_for(ccy1, ccy2, trade_date) not in all_holidays
+
+
+# -- example-based tests --
+
+def test_usd_and_currency_holidays_where_usd_holiday_in_between_ccy_holiday():
+    trade_date = date(2021, 11, 1)          # Mon
+
+    calc = s.ValueDateCalculator()
+    calc.set_holidays('JPY', [date(2021, 11, 2)])    # Tue
+    calc.set_holidays('USD', [date(2021, 11, 3)])    # Wed
+    calc.set_holidays('SGD', [date(2021, 11, 4)])    # Thu
+
+    assert calc.spot_for('JPY', 'SGD', trade_date) == date(2021, 11, 5)
+
+
+def test_usd_and_currency_holidays_where_usd_holiday_is_on_candidate_date():
+    trade_date = date(2021, 11, 1)          # Mon
+
+    calc = s.ValueDateCalculator()
+    calc.set_holidays('JPY', [date(2021, 11, 2)])    # Tue
+    calc.set_holidays('USD', [date(2021, 11, 4)])    # Wed
+
+    assert calc.spot_for('JPY', 'SGD', trade_date) == date(2021, 11, 5)
