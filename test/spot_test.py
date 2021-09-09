@@ -127,3 +127,10 @@ def test_usd_on_t_plus_one_is_counted_as_good_date():
     shuffle(pair)
 
     assert calc.spot_for(*pair, trade_date) == date(2021, 11, 3)
+
+
+def test_defaults_sat_and_sun_as_weekends():
+    trade_date = date(2021, 11, 5)  # Fri
+    calc = s.ValueDateCalculator()
+
+    assert calc.spot_for('ABC', 'XYZ', trade_date) == date(2021, 11, 9) # Tue
