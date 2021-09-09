@@ -29,6 +29,20 @@ def trade_dates_and_usd_holidays(draw):
     return (trade_date, days_to_add)
 
 
+@st.composite
+def trade_date_pair_and_holidays(draw):
+    trade_date = draw(trade_dates())
+    pair = draw(currency_pairs())
+    holidays = []
+
+    for _ in range(2):
+        holidays.append([
+            trade_date + timedelta(days=n)
+            for n in draw(st.sets(st.integers(0, 20)))])
+
+    return (trade_date, pair, holidays)
+
+
 def weekend_lists():
     return st.lists(st.integers(1, 7), max_size=3, unique=True)
 
@@ -59,3 +73,16 @@ def test_spot_never_falls_on_usd_holidays(trade_date_and_usd_holidays, pair):
     calculator.set_holidays('USD', usd_holidays)
 
     assert calculator.spot_for(ccy, 'USD', trade_date) not in usd_holidays
+
+
+@given(trade_date_pair_and_holidays())
+def test_spot_never_falls_on_currency_holidays(trade_date_pair_and_holidays):
+    trade_date, [ccy1, ccy2], [holidays1, holidays2] = trade_date_pair_and_holidays
+
+    calculator = s.ValueDateCalculator()
+    calculator.set_holidays(ccy1, holidays1)
+    calculator.set_holidays(ccy2, holidays2)
+
+    all_holidays = set(holidays1) | set(holidays2)
+
+    assert calculator.spot_for(ccy1, ccy2, trade_date) not in all_holidays
