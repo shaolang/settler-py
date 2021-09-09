@@ -82,7 +82,7 @@ def test_spot_never_falls_on_currency_holidays(pair, dates):
 @given(currency_pairs(), trade_dates(), spot_lags())
 def test_same_no_of_biz_days_for_given_spot_lag(pair, trade_date, spot_lag):
     calc = s.ValueDateCalculator()
-    calc.set_spot_lag(pair, spot_lag)
+    calc.set_spot_lag(*pair, spot_lag)
 
     shuffle(pair)
     spot_date = calc.spot_for(*pair, trade_date)

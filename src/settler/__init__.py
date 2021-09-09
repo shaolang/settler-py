@@ -18,9 +18,9 @@ class ValueDateCalculator:
         self.__holidays[ccy] = holidays
 
 
-    def set_spot_lag(self, pair, spot_lag):
-        self.__spot_lags[tuple(pair)] = spot_lag
-        self.__spot_lags[tuple(pair[::-1])] = spot_lag
+    def set_spot_lag(self, ccy1, ccy2, spot_lag):
+        self.__spot_lags[(ccy1, ccy2)] = spot_lag
+        self.__spot_lags[(ccy2, ccy1)] = spot_lag
 
 
     def set_weekends(self, ccy1, weekends):
