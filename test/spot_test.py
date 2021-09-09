@@ -6,13 +6,15 @@ import settler as s
 
 # -- generators --
 
-def currency_pairs():
-    gen_ccy = st.one_of(
+def currencies():
+    return st.one_of(
             st.lists(st.characters(min_codepoint=48, max_codepoint=91),
                 min_size=3, max_size=3).map(lambda cs: ''.join(cs)),
-            st.sampled_from(['USD', 'AUD', 'JPY', 'SGD']))
+            st.sampled_from(['AUD', 'JPY', 'SGD', 'USD']))
 
-    return st.lists(gen_ccy, min_size=2, max_size=2, unique=True)
+
+def currency_pairs():
+    return st.sets(currencies(), min_size=2, max_size=2).map(list)
 
 
 def holidays(trade_date):
