@@ -24,21 +24,16 @@ def trade_dates():
     return st.dates(date(2000, 1, 1), date(2050, 12, 31))
 
 
-@st.composite
-def trade_dates_and_usd_holidays(draw):
-    trade_date = draw(trade_dates())
-    usd_holidays = draw(holidays(trade_date))
-
-    return (trade_date, usd_holidays)
+def trade_dates_and_usd_holidays():
+    return trade_dates().flatmap(lambda d: st.tuples(st.just(d), holidays(d)))
 
 
-@st.composite
-def trade_date_pair_and_holidays(draw):
-    trade_date = draw(trade_dates())
-    pair = draw(currency_pairs())
-    ccy_holidays = [draw(holidays(trade_date)), draw(holidays(trade_date))]
-
-    return (trade_date, pair, ccy_holidays)
+def trade_date_pair_and_holidays():
+    return st.tuples(trade_dates(), currency_pairs()).flatmap(
+            lambda dp: st.tuples(
+                st.just(dp[0]),
+                st.just(dp[1]),
+                st.tuples(holidays(dp[0]), holidays(dp[0]))))
 
 
 def weekend_lists():
