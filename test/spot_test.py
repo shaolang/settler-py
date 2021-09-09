@@ -14,7 +14,7 @@ def currencies():
 
 
 def currency_pairs():
-    return st.sets(currencies(), min_size=2, max_size=2).map(list)
+    return st.lists(currencies(), min_size=2, max_size=2, unique=True)
 
 
 def holidays(trade_date):
@@ -24,18 +24,6 @@ def holidays(trade_date):
 
 def trade_dates():
     return st.dates(date(2000, 1, 1), date(2050, 12, 31))
-
-
-def trade_dates_and_usd_holidays():
-    return trade_dates().flatmap(lambda d: st.tuples(st.just(d), holidays(d)))
-
-
-def trade_date_pair_and_holidays():
-    return st.tuples(trade_dates(), currency_pairs()).flatmap(
-            lambda dp: st.tuples(
-                st.just(dp[0]),
-                st.just(dp[1]),
-                st.tuples(holidays(dp[0]), holidays(dp[0]))))
 
 
 def weekend_lists():
@@ -60,19 +48,22 @@ def test_weekends_arent_always_sat_and_sun_only(weekends, trade_date, pair):
     assert calculator.spot_for(ccy1, ccy2, trade_date).isoweekday() not in weekends
 
 
-@given(trade_dates_and_usd_holidays(), currency_pairs())
-def test_spot_never_falls_on_usd_holidays(trade_date_and_usd_holidays, pair):
-    trade_date, usd_holidays = trade_date_and_usd_holidays
-    ccy = pair[1] if pair[0] == 'USD' else pair[0]
+@given(currencies(),
+        trade_dates().flatmap(lambda d: st.tuples(st.just(d), holidays(d))))
+def test_spot_never_falls_on_usd_holidays(ccy, dates):
+    trade_date, usd_holidays = dates
     calculator = s.ValueDateCalculator()
     calculator.set_holidays('USD', usd_holidays)
 
     assert calculator.spot_for(ccy, 'USD', trade_date) not in usd_holidays
 
 
-@given(trade_date_pair_and_holidays())
-def test_spot_never_falls_on_currency_holidays(trade_date_pair_and_holidays):
-    trade_date, [ccy1, ccy2], [holidays1, holidays2] = trade_date_pair_and_holidays
+@given(currency_pairs(),
+        trade_dates().flatmap(
+            lambda d: st.tuples(st.just(d), holidays(d), holidays(d))))
+def test_spot_never_falls_on_currency_holidays(pair, dates):
+    ccy1, ccy2 = pair
+    trade_date, holidays1, holidays2 = dates
 
     calculator = s.ValueDateCalculator()
     calculator.set_holidays(ccy1, holidays1)
