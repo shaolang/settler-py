@@ -15,6 +15,11 @@ def currency_pairs():
     return st.lists(gen_ccy, min_size=2, max_size=2, unique=True)
 
 
+def holidays(trade_date):
+    return st.sets(st.integers(0, 20)).map(
+            lambda ns: [trade_date + timedelta(days=n) for n in ns])
+
+
 def trade_dates():
     return st.dates(date(2000, 1, 1), date(2050, 12, 31))
 
@@ -22,25 +27,18 @@ def trade_dates():
 @st.composite
 def trade_dates_and_usd_holidays(draw):
     trade_date = draw(trade_dates())
-    days_to_add = draw(
-            st.lists(st.integers(0, 20)
-                .map(lambda n: trade_date + timedelta(days=n))))
+    usd_holidays = draw(holidays(trade_date))
 
-    return (trade_date, days_to_add)
+    return (trade_date, usd_holidays)
 
 
 @st.composite
 def trade_date_pair_and_holidays(draw):
     trade_date = draw(trade_dates())
     pair = draw(currency_pairs())
-    holidays = []
+    ccy_holidays = [draw(holidays(trade_date)), draw(holidays(trade_date))]
 
-    for _ in range(2):
-        holidays.append([
-            trade_date + timedelta(days=n)
-            for n in draw(st.sets(st.integers(0, 20)))])
-
-    return (trade_date, pair, holidays)
+    return (trade_date, pair, ccy_holidays)
 
 
 def weekend_lists():
