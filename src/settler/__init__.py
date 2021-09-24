@@ -42,6 +42,14 @@ class ValueDateCalculator:
         return candidate
 
 
+    def value_date_for(self, ccy1, ccy2, tenor, trade_date):
+        spot = self.spot_for(ccy1, ccy2, trade_date)
+        tenor_n, tenor_unit = int(tenor[:-1]), tenor[-1].lower()
+        tenor_days = 7 if tenor_unit == 'w' else 30
+
+        return spot + timedelta(days=tenor_n * tenor_days)
+
+
     def __biz_day_predicate(self, ccy, include_holidays):
         weekends = self.__weekends.get(ccy, self.__DEFAULT_WEEKENDS)
         holidays = (
