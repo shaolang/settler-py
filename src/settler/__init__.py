@@ -18,7 +18,8 @@ class ValueDateCalculator:
         self.__holidays[ccy] = holidays
 
 
-    def set_spot_lag(self, ccy1, ccy2, spot_lag):
+    def set_spot_lag(self, pair, spot_lag):
+        ccy1, ccy2 = pair[:3], pair[-3:]
         self.__spot_lags[(ccy1, ccy2)] = spot_lag
         self.__spot_lags[(ccy2, ccy1)] = spot_lag
 
@@ -27,7 +28,8 @@ class ValueDateCalculator:
         self.__weekends[ccy] = weekends
 
 
-    def spot_for(self, ccy1, ccy2, trade_date):
+    def spot_for(self, pair, trade_date):
+        ccy1, ccy2 = pair[:3], pair[-3:]
         spot_lag = self.__spot_lags.get((ccy1, ccy2), self.__DEFAULT_SPOT_LAG)
         ccy1_pred, ccy1_spot = self.__pred_and_spot(ccy1, trade_date, spot_lag)
         ccy2_pred, ccy2_spot = self.__pred_and_spot(ccy2, trade_date, spot_lag)
@@ -42,8 +44,8 @@ class ValueDateCalculator:
         return candidate
 
 
-    def value_date_for(self, ccy1, ccy2, tenor, trade_date):
-        spot = self.spot_for(ccy1, ccy2, trade_date)
+    def value_date_for(self, pair, tenor, trade_date):
+        spot = self.spot_for(pair, trade_date)
         tenor_n, tenor_unit = int(tenor[:-1]), tenor[-1].lower()
         tenor_days = 7 if tenor_unit == 'w' else 30
 

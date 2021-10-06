@@ -11,4 +11,4 @@ import settler as s
 def test_tenors_beyond_spot_starts_from_spot(trade_date, tenor, expected):
     vd = s.ValueDateCalculator()
 
-    assert vd.value_date_for('USD', 'SGD', tenor, trade_date) == expected
+    assert vd.value_date_for('USDSGD', tenor, trade_date) == expected
