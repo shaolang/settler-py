@@ -45,11 +45,10 @@ class ValueDateCalculator:
 
 
     def value_date_for(self, pair, tenor, trade_date):
-        spot = self.spot_for(pair, trade_date)
-        tenor_n, tenor_unit = int(tenor[:-1]), tenor[-1].lower()
-        tenor_days = 7 if tenor_unit == 'w' else 30
+        tenor = tenor.lower()
+        d = trade_date if tenor == 'tom' else self.spot_for(pair, trade_date)
 
-        return spot + timedelta(days=tenor_n * tenor_days)
+        return d + timedelta(days=self.__days_to_add(tenor.lower()))
 
 
     def __biz_day_predicate(self, ccy, include_holidays):
@@ -77,3 +76,10 @@ class ValueDateCalculator:
 
         return (pred,
                 list(islice(self.__biz_dates(trade_date, pred), spot_lag))[-1])
+
+    def __days_to_add(self, tenor):
+        if tenor == 'tom':
+            return 1
+
+        tenor_n, tenor_unit = int(tenor[:-1]), tenor[-1]
+        return tenor_n * (7 if tenor_unit == 'w' else 30)
