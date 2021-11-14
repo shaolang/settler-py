@@ -20,8 +20,8 @@ class ValueDateCalculator:
 
     def set_spot_lag(self, pair, spot_lag):
         ccy1, ccy2 = pair[:3], pair[-3:]
-        self.__spot_lags[(ccy1, ccy2)] = spot_lag
-        self.__spot_lags[(ccy2, ccy1)] = spot_lag
+        self.__spot_lags[pair] = spot_lag
+        self.__spot_lags[f'{ccy2}{ccy1}'] = spot_lag
 
 
     def set_weekends(self, ccy, weekends):
@@ -30,7 +30,7 @@ class ValueDateCalculator:
 
     def spot_for(self, pair, trade_date):
         ccy1, ccy2 = pair[:3], pair[-3:]
-        spot_lag = self.__spot_lags.get((ccy1, ccy2), self.__DEFAULT_SPOT_LAG)
+        spot_lag = self.__spot_lags.get(pair, self.__DEFAULT_SPOT_LAG)
         ccy1_pred, ccy1_spot = self.__pred_and_spot(ccy1, trade_date, spot_lag)
         ccy2_pred, ccy2_spot = self.__pred_and_spot(ccy2, trade_date, spot_lag)
         candidate = ccy1_spot if ccy1_spot > ccy2_spot else ccy2_spot
