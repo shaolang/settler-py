@@ -2,6 +2,14 @@
 requires = ["setuptools >= 42", "wheel"]
 build-backend = "setuptools.build_meta"
 
+[tool.black]
+line-length = 80
+skip-string-normalization = true
+
+[[tool.mypy.overrides]]
+module = ["hypothesis"]
+ignore_missing_imports = true
+
 [tool.pytest.ini_options]
-addopts = "-vv"
-python_paths = "src"
+addopts = "-vv --cov=src --cov-branch --cov-report=term --cov-report=html --mypy"
+pythonpath = ["src"]

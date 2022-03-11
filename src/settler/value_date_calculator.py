@@ -1,10 +1,10 @@
-from datetime import timedelta
+from datetime import date, timedelta
 from itertools import islice
 
 
 class ValueDateCalculator:
     __DEFAULT_WEEKENDS = [6, 7]
-    __DEFAULT_HOLIDAYS = []
+    __DEFAULT_HOLIDAYS: list[date] = []
     __DEFAULT_SPOT_LAG = 2
     __ONE_DAY = timedelta(days=1)
 
@@ -28,7 +28,7 @@ class ValueDateCalculator:
         self.__weekends[ccy] = weekends
 
 
-    def spot_for(self, pair, trade_date):
+    def spot_for(self, pair, trade_date) -> date:
         ccy1, ccy2 = pair[:3], pair[-3:]
         spot_lag = self.__spot_lags.get(pair, self.__DEFAULT_SPOT_LAG)
         ccy1_pred, ccy1_spot = self.__pred_and_spot(ccy1, trade_date, spot_lag)
@@ -44,7 +44,7 @@ class ValueDateCalculator:
         return candidate
 
 
-    def value_date_for(self, pair, tenor, trade_date):
+    def value_date_for(self, pair, tenor, trade_date) -> date:
         tenor = tenor.lower()
         d = trade_date if tenor == 'tom' else self.spot_for(pair, trade_date)
 
